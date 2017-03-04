@@ -19,6 +19,9 @@ GATE_URL_PREFIX = 'http://gate.baidu.com'
 FLOOR_STR = '楼. '
 
 
+quiet = False
+
+
 def remove_prefix(string, prefix):
     found = string.find(prefix)
     if found != -1:
@@ -28,7 +31,8 @@ def remove_prefix(string, prefix):
 
 
 def info(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+    if not quiet:
+        print(*args, file=sys.stderr, **kwargs)
 
 
 def gen_url(url, **kwargs):
@@ -232,6 +236,8 @@ def output_list(kw, start, end, dist, format):
 
 
 def main():
+    global quiet
+    
     if len(sys.argv) in range(1,3):
         sys.argv.append('--help')
 
@@ -239,6 +245,10 @@ def main():
     parser.add_argument(
         '-f', '--format', metavar='輸出格式', choices=['text', 'json'],
         help='(text|json) [default: text]', default='text'
+    )
+    parser.add_argument(
+        '-q', '--quiet', action='store_true', help='不輸出 Debug Message',
+        default = False
     )
 
     subparsers = parser.add_subparsers()
@@ -263,6 +273,7 @@ def main():
     )
 
     args = parser.parse_args()
+    quiet = args.quiet
     args.func(args)
 
 
