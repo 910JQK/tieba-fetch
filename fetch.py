@@ -3,6 +3,8 @@
 
 import re
 import sys
+import json
+import argparse
 import urllib.request
 from urllib.parse import urlencode, unquote
 from bs4 import BeautifulSoup
@@ -173,7 +175,29 @@ def fetch_kz(kz):
     return {'title': title, 'author': posts[0]['author'], 'posts': posts}
 
 
-def print_topic(topic):
+def fetch_kw(kw, page_start, page_end, dist=False):
+    assert page_start <= page_end
+    info(
+        '【抓取帖子列表】%s吧 %s [%d, %d]'
+        % (kw, {True: '精品區', False: ''}[dist], page_start, page_end)
+    )
+    topics = []
+    for pn in range(page_start, page_end+1):
+        info('【頁碼】第 %d 頁' % pn)
+        if dist:
+            doc = fetch(URL_M, kw=kw, pnum=pn, lm=4)
+        else:
+            doc = fetch(URL_M, kw=kw, pnum=pn)
+        for item in doc.find_all('div', class_='i'):
+            link = item.find('a')
+            kz = int(re.search('kz=([0-9]+)', link['href'])[1])
+            title = remove_prefix(link.string, '.\xA0')
+            topics.append({'kz': kz, 'title': title})
+    info('【完成】帖子列表抓取完成，共 %d 帖' % len(topics))
+    return topics
+
+
+def print_topic_text(topic):
     print(topic['title'])
     print('LZ: %s' % topic['author'])
     print('='*80)
@@ -188,10 +212,58 @@ def print_topic(topic):
         print('#'*80)
 
 
+def output_topic(kz, format):
+    if format == 'json':
+        print(json.dumps(fetch_kz(kz)) )
+    elif format == 'text':
+        print_topic_text(fetch_kz(kz))
+    else:
+        info('Invalid Output Format Specified.')
+
+
+def output_list(kw, start, end, dist, format):
+    if format == 'json':
+        print(json.dumps(fetch_kw(kw, start, end, dist)) )
+    elif format == 'text':
+        for topic in fetch_kw(kw, start, end, dist):
+            print('%(kz)d %(title)s' % topic)
+    else:
+        info('Invalid Output Format Specified.')
+
+
 def main():
-    kz = int(sys.argv[1])
-    topic = fetch_kz(kz)
-    print_topic(topic)
+    if len(sys.argv) in range(1,3):
+        sys.argv.append('--help')
+
+    parser = argparse.ArgumentParser(description='Tieba Post Fetch Tool')
+    parser.add_argument(
+        '-f', '--format', metavar='輸出格式', choices=['text', 'json'],
+        help='(text|json) [default: text]', default='text'
+    )
+
+    subparsers = parser.add_subparsers()
+
+    p_topic = subparsers.add_parser('topic', help='抓取主題帖內容')
+    p_topic.add_argument('kz', type=int, help='帖子號碼')
+    p_topic.set_defaults(func=lambda args: output_topic(args.kz, args.format))
+
+    p_list = subparsers.add_parser('list', help='抓取帖子列表')
+    p_list.add_argument('kw', help='帖吧名')
+    p_list.add_argument('start', type=int, help='起始頁碼')
+    p_list.add_argument('end', type=int, help='終止頁碼')
+    p_list.add_argument(
+        '-d', '--dist', action='store_true', help='只列出精品帖', default=False
+    )
+    p_list.set_defaults(
+        func = (
+            lambda args: output_list(
+                args.kw, args.start, args.end, args.dist, args.format
+            )
+        )
+    )
+
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == '__main__':
