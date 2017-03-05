@@ -65,7 +65,7 @@ def get_tag_text(tag):
         return tag.string
     elif tag.get('href', '').startswith(GATE_URL_PREFIX):
         # URL
-        return unquote(re.search('src=([^&]+)', tag['href'])[1])
+        return unquote(re.search('src=([^&]+)', tag['href']).group(1))
     elif (
             tag.name == 'img'
             and tag.get('src', '').startswith(EMOTICON_URL_PREFIX)
@@ -76,7 +76,7 @@ def get_tag_text(tag):
         # 圖片
         img = tag.find('img', class_='BDE_Image')
         if preserve_imgsrc_url:
-            img_url = unquote(re.search('src=([^&]+)', img['src'])[1])
+            img_url = unquote(re.search('src=([^&]+)', img['src']).group(1))
         else:
             img_url = img['src']
             img_url = re.sub('quality=[0-9][0-9]', 'quality=100', img_url)
@@ -139,16 +139,16 @@ def fetch_kz(kz):
             reply_link = item.find('a', class_='reply_to')
             if reply_link:
                 post['pid'] = int(
-                    re.search('pid=([0-9]+)', reply_link['href'])[1]
+                    re.search('pid=([0-9]+)', reply_link['href']).group(1)
                 )
                 match = re.search('[0-9]+', reply_link.string)
                 if match:
-                    post['reply_count'] = int(match[0])
+                    post['reply_count'] = int(match.group(0))
             else:
                 post['pid'] = None
             # 保存樓層信息到 post['floor'], 並在正文中刪除之
             fc_str = item.contents[0].string
-            post['floor'] = int(re.match('^[0-9]+', fc_str)[0])
+            post['floor'] = int(re.match('^[0-9]+', fc_str).group(0))
             remove_floor_str(item)
             # 處理長文拆分
             next_btn = item.find('a', text='下一段')
@@ -204,7 +204,7 @@ def fetch_kw(kw, page_start, page_end, dist=False):
             doc = fetch(URL_M, kw=kw, pnum=pn)
         for item in doc.find_all('div', class_='i'):
             link = item.find('a')
-            kz = int(re.search('kz=([0-9]+)', link['href'])[1])
+            kz = int(re.search('kz=([0-9]+)', link['href']).group(1))
             title = remove_prefix(link.string, '.\xA0')
             topics.append({'kz': kz, 'title': title})
     info('【完成】帖子列表抓取完成，共 %d 帖' % len(topics))
