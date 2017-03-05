@@ -20,6 +20,7 @@ FLOOR_STR = '楼. '
 
 
 quiet = False
+preserve_imgsrc_url = False
 
 
 def remove_prefix(string, prefix):
@@ -74,7 +75,16 @@ def get_tag_text(tag):
     elif tag.find('img', class_='BDE_Image'):
         # 圖片
         img = tag.find('img', class_='BDE_Image')
-        img_url = unquote(re.search('src=([^&]+)', img['src'])[1])
+        if preserve_imgsrc_url:
+            img_url = unquote(re.search('src=([^&]+)', img['src'])[1])
+        else:
+            img_url = img['src']
+            img_url = re.sub('quality=[0-9][0-9]', 'quality=100', img_url)
+            img_url = (
+                re.sub(
+                    'size=b[0-9]{2,4}_[0-9]{2,4}', 'size=b2000_2000', img_url
+                )
+            )
         return '\n%s\n' % img_url
     elif tag.name == 'img':
         return ' %s ' % tag.get('src', '')
@@ -237,6 +247,7 @@ def output_list(kw, start, end, dist, format):
 
 def main():
     global quiet
+    global preserve_imgsrc_url
     
     if len(sys.argv) in range(1,3):
         sys.argv.append('--help')
@@ -255,6 +266,7 @@ def main():
 
     p_topic = subparsers.add_parser('topic', help='抓取主題帖內容')
     p_topic.add_argument('kz', type=int, help='帖子號碼')
+    p_topic.add_argument('-i', '--imgsrc', action='store_true', help='使用 imgsrc.baidu.com 的圖片 URL', default=False)
     p_topic.set_defaults(func=lambda args: output_topic(args.kz, args.format))
 
     p_list = subparsers.add_parser('list', help='抓取帖子列表')
@@ -274,6 +286,7 @@ def main():
 
     args = parser.parse_args()
     quiet = args.quiet
+    preserve_imgsrc_url = args.imgsrc
     args.func(args)
 
 
