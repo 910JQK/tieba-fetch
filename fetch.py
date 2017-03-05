@@ -70,7 +70,7 @@ def get_tag_text(tag):
             and tag.get('src', '').startswith(EMOTICON_URL_PREFIX)
     ):
         # 表情
-        return '[%s]' % remove_prefix(tag['src'], EMOTICON_URL_PREFIX)
+        return ' [%s] ' % remove_prefix(tag['src'], EMOTICON_URL_PREFIX)
     elif tag.find('img', class_='BDE_Image'):
         # 圖片
         img = tag.find('img', class_='BDE_Image')
