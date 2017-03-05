@@ -89,7 +89,7 @@ def fetch_flr(kz, pid):
         for item in items:
             subpost = {'text': ''}
             subpost['author'] = (
-                item.find('a', href=re.compile(USER_PREFIX)).string
+                item.find_all('a', href=re.compile(USER_PREFIX))[-1].string
             )
             subpost['date'] = item.find('span', class_='b').string
             for tag in item.contents:
