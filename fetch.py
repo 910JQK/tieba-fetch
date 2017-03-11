@@ -206,7 +206,9 @@ def fetch_kw(kw, page_start, page_end, dist=False):
             link = item.find('a')
             kz = int(re.search('kz=([0-9]+)', link['href']).group(1))
             title = remove_prefix(link.string, '.\xA0')
-            topics.append({'kz': kz, 'title': title})
+            dist = bool(item.find(text='精'))
+            pin = bool(item.find(text='顶'))
+            topics.append({'kz': kz, 'title': title, 'dist': dist, 'pin': pin})
     info('【完成】帖子列表抓取完成，共 %d 帖' % len(topics))
     return topics
 
@@ -240,7 +242,12 @@ def output_list(kw, start, end, dist, format):
         print(json.dumps(fetch_kw(kw, start, end, dist)) )
     elif format == 'text':
         for topic in fetch_kw(kw, start, end, dist):
-            print('%(kz)d %(title)s' % topic)
+            line = '%(kz)d %(title)s' % topic
+            if topic['dist']:
+                line += ' 【精】'
+            if topic['pin']:
+                line += ' 【顶】'
+            print(line)
     else:
         info('Invalid Output Format Specified.')
 
@@ -286,7 +293,8 @@ def main():
 
     args = parser.parse_args()
     quiet = args.quiet
-    preserve_imgsrc_url = args.imgsrc
+    if hasattr(args, 'imgsrc'):
+        preserve_imgsrc_url = args.imgsrc
     args.func(args)
 
 
