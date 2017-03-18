@@ -186,7 +186,11 @@ def fetch_kz(kz):
         posts += process_doc(fetch(URL_M, kz=kz, pnum=pn), pn=pn)
         pn += 1
     info('【完成】帖子 %d 抓取完成，共 %d 層' % (kz, len(posts)))
-    return {'title': title, 'author': posts[0]['author'], 'posts': posts}
+    if len(posts) == 0:
+        topic_author = ''
+    else:
+        topic_author = posts[0]['author']
+    return {'title': title, 'author': topic_author, 'posts': posts}
 
 
 def fetch_kw(kw, page_start, page_end, dist=False):
