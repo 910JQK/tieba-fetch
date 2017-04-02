@@ -17,6 +17,7 @@ USER_PREFIX = 'i?un='
 EMOTICON_URL_PREFIX = 'http://tb2.bdstatic.com/tb/editor/images/'
 GATE_URL_PREFIX = 'http://gate.baidu.com'
 FLOOR_STR = '楼. '
+TIMEOUT = 10
 
 
 quiet = False
@@ -51,7 +52,7 @@ def get_total_pages(doc):
 def fetch(url, **kwargs):
     url = gen_url(url, **kwargs)
     info('【請求】%s' % url)
-    response = urllib.request.urlopen(url)
+    response = urllib.request.urlopen(url, timeout=TIMEOUT)
     return BeautifulSoup(response.read(), 'lxml')
 
 
