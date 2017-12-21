@@ -176,7 +176,7 @@ def fetch_kz(kz):
         return posts
     info('【抓取帖子】%d' % kz)
     doc = fetch(URL_M, kz=kz)
-    title = doc.title.string
+    title = doc.find('strong').string
     info('【標題】%s' % title)
     total_pages = get_total_pages(doc)
     info('【頁數】%d' % total_pages)
